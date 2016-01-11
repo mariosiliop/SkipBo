@@ -1,13 +1,13 @@
 import javax.swing.*;
-import javax.swing.plaf.basic.BasicInternalFrameTitlePane;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Random;
 
 /**
  * Created by kille on 1/4/2016.
  */
-public class Game extends JFrame{
+public class Game{
 
     public Config config;
     public String [] color = {"RED", "BLUE", "GREEN", "YELLOW"};
@@ -25,7 +25,36 @@ public class Game extends JFrame{
 
         config = configRef;
 
-        newGame();
+        frame = new JFrame();
+        frame.setTitle("Skip Bo");
+
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setPreferredSize(new Dimension(300,200));
+        frame.setVisible(true);
+
+        JButton play = new JButton("Play");
+        JButton about = new JButton("About");
+
+        JPanel row = new JPanel();
+
+        row.add(play);
+        row.add(about);
+
+        frame.getContentPane().setLayout(new FlowLayout());
+
+        frame.getContentPane().add(play, BorderLayout.CENTER);
+        frame.getContentPane().add(about, BorderLayout.CENTER);
+
+        play.addActionListener(e -> {
+                frame.dispose();
+                newGame();
+        });
+
+        about.addActionListener(e -> {
+            JOptionPane.showMessageDialog(frame, "Skip Bo Game", "About", JOptionPane.INFORMATION_MESSAGE);
+        });
+
+        frame.pack();
 
     }
 
@@ -50,7 +79,7 @@ public class Game extends JFrame{
 
         initializeBoard();
 
-        setActivePlayer(players.get(1));
+        setActivePlayer(firstPlayer(players));
 
 
     }
@@ -70,7 +99,7 @@ public class Game extends JFrame{
         deck = new CardStack();
 
         for(int i = 0; i < config.totalWildCard/2; i++)
-            cards.add(new Card("wild", color[i%4]));
+            cards.add(new SimpleCards("wild", color[i%4]));
 
         for(int i = 0; i < config.totalWildCard/2; i++)
             cards.add(new Card("special", color[i%4]));
@@ -106,6 +135,17 @@ public class Game extends JFrame{
 
         boardRow.add(new VisualCardStack(deck, 0, null, "deck", this, false).element);
 
+        JButton exit = new JButton("Exit");
+
+        exit.setPreferredSize(new Dimension(60, 35));
+        exit.setBorder(BorderFactory.createLineBorder(Color.BLACK, 1));
+
+        boardRow.add(exit);
+
+        exit.addActionListener(e -> {
+            frame.dispose();
+        });
+
         pane.add(players.get(0).field);
         pane.add(boardRow);
         pane.add(players.get(1).field);
@@ -118,18 +158,18 @@ public class Game extends JFrame{
 
         activePlayer = object;
 
-        for (int i = 0; i < players.size(); i ++)
-            players.get(0).field.setBackground(Color.white);
-
         activePlayer.field.setBackground(Color.green);
+
+        for(int i = 0; i < players.size(); i++)
+            if(players.get(i) != activePlayer)
+                players.get(i).field.setBackground(Color.red);
 
     }
 
     public void selectStack(VisualCardStack stack){
-        if(selectedStack == null) {
+        if(selectedStack == null && stack.owner == activePlayer) {
 
             selectedStack = stack;
-            System.out.print(selectedStack.getShowingCard().value + " selected stack");
             stack.element.setBorder(BorderFactory.createLineBorder(Color.RED, 2));
 
         } else if (stack.owner == activePlayer){
@@ -141,6 +181,34 @@ public class Game extends JFrame{
 
         }
 
+    }
+
+    public Player firstPlayer(ArrayList<Player> players){
+
+        try{
+            int x = Integer.parseInt(players.get(0).stack.getTop().value);
+            int y = Integer.parseInt(players.get(1).stack.getTop().value);
+
+            if(x > y)
+                return players.get(0);
+            else
+                return players.get(1);
+
+        }catch(NumberFormatException e){
+
+        }
+
+        Random rand = new Random();
+        int n = rand.nextInt(2);
+
+        return players.get(n);
+
+    }
+    public void paintComponent(Graphics g) {
+        g.setColor(Color.blue);
+        g.fillRect(100, 50, 200, 100);
+        g.setColor(Color.BLACK);
+        g.drawRect(100, 50, 200, 100);
     }
 
 }

@@ -51,15 +51,11 @@ public class Player {
 
     public void endTurn(){
 
-        game.activePlayer.field.setBackground(Color.white);
+        game.activePlayer.field.setBackground(Color.red);
         game.setActivePlayer(game.nextPlayer());
         game.selectedStack = null;
         game.activePlayer.fillHand();
 
-    }
-
-    public boolean isActive(){
-        return this == game.activePlayer;
     }
 
 }

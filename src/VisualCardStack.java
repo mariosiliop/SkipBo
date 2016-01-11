@@ -49,6 +49,7 @@ public class VisualCardStack{
         Border empty = new EmptyBorder(0, 0, 0, 2);
         element.setBorder(new CompoundBorder(empty, current));
 
+
         MouseAdapter handler = _clickHandler();
 
         element.addMouseListener(handler);
@@ -66,7 +67,6 @@ public class VisualCardStack{
 
                 if(game.selectedStack != null){
                     boolean select = migrate(game.selectedStack, superRef);
-                    System.out.println(select + " MIGRATE");
                     if(select)
                         return;
                 }
@@ -103,7 +103,6 @@ public class VisualCardStack{
 
     public boolean moveCard(VisualCardStack from, VisualCardStack to){
 
-        System.out.println("MOVE CARD");
         Card fromCard = from.getShowingCard();
         Card toCard = to.getShowingCard();
 
@@ -116,7 +115,6 @@ public class VisualCardStack{
         if(toCard != null){
 
             if(to.type == "board") {
-                System.out.print(Integer.parseInt(toCard.value) + "to card value ");
 
                 if (fromCard.value == "special" || fromCard.value == "wild")
                     fromCard.setValue(String.valueOf(Integer.parseInt(toCard.value) + 1));
@@ -131,37 +129,46 @@ public class VisualCardStack{
 
                     int newValue = 0;
 
-                    while (newValue < 1 || newValue > game.config.cardMaxSize || Double.isNaN(newValue))
-                        newValue = Integer.valueOf(JOptionPane.showInputDialog(game.frame, "Give a number"));
+                    while (newValue < 1 || newValue > game.config.cardMaxSize ) {
+                        try {
+                            newValue = Integer.valueOf(JOptionPane.showInputDialog(game.frame, "Give a number"));
+                        }catch (NumberFormatException e){
+
+                        }
+                    }
 
                     fromCard.setValue(String.valueOf(newValue));
 
                 } else {
                     if (fromCard.value == "wild")
                         fromCard.setValue("1");
-                    else if (Integer.parseInt(fromCard.value) != 1) {
-                        System.out.println("FALSE " + fromCard.value);
+                    else if (Integer.parseInt(fromCard.value) != 1)
                         return false;
-                    }
+
                 }
 
         }
 
-            to.push(from.popShowingCard());
+        to.push(from.popShowingCard());
 
-            if(Integer.parseInt(fromCard.value) == Integer.parseInt("12") && to.type == "board")
+        try {
+            if (Integer.parseInt(fromCard.value) == Integer.parseInt("12") && to.type == "board")
                 to.burn();
+        }catch (NumberFormatException e){
 
-            if(from.type == "hand" && from.length() == 0)
-                from.owner.fillHand();
+        }
 
-            if(from.type == "stack" && from.length() == 0){
-                JOptionPane.showMessageDialog(null, "Win");
+        if (from.type == "hand" && from.length() == 0)
+            from.owner.fillHand();
 
-            }
+        if (from.type == "stack" && from.length() == 0) {
+            game.frame.dispose();
+            new Game(game.config);
+        }
 
-            game.selectedStack.element.setBorder(BorderFactory.createLineBorder(Color.BLACK, 1));
-            game.selectedStack = null;
+
+        game.selectedStack.element.setBorder(BorderFactory.createLineBorder(Color.BLACK, 1));
+        game.selectedStack = null;
 
             return true;
 
@@ -169,7 +176,6 @@ public class VisualCardStack{
 
     public void burn(){
 
-        System.out.println("...............BURN......................");
         ArrayList<Card> cards = stack.pop(stack.length(), 0, false);
 
         for(int i = 0; i <  cards.size(); i++){
@@ -188,8 +194,6 @@ public class VisualCardStack{
 
     public ArrayList<Card> popShowingCard(){
 
-        System.out.println(specificIndex + " INDEX");
-
         if(!useSpecificIndex)
             return stack.pop(1, stack.length() - 1, useSpecificIndex );
         else
@@ -202,14 +206,10 @@ public class VisualCardStack{
     }
 
     public Card getShowingCard(){
-        if(!useSpecificIndex) {
-            System.out.print(stack.getTop() + " TOP ");
+        if(!useSpecificIndex)
             return stack.getTop();
-        }
-        else {
-            System.out.println(specificIndex + " Specific Index " + stack.get(specificIndex));
+        else
             return stack.get(specificIndex);
-        }
     }
 
     public void updateText(){
