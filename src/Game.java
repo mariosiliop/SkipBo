@@ -100,7 +100,7 @@ public class Game {
 
     }
 
-    // Determinces which player plays next and
+    // Determines which player plays next and
     // returns a reference
     public Player nextPlayer(){
 
