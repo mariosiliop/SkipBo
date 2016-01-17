@@ -1,5 +1,6 @@
 import javax.swing.*;
 import java.awt.*;
+import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Random;
@@ -7,7 +8,7 @@ import java.util.Random;
 /**
  * Created by kille on 1/4/2016.
  */
-public class Game{
+public class Game {
 
     public Config config;
     public String [] color = {"RED", "BLUE", "GREEN", "YELLOW"};
@@ -19,7 +20,6 @@ public class Game{
     public JFrame frame;
     public JPanel boardRow;
     public Player activePlayer;
-
 
     Game(Config configRef ){
 
@@ -99,16 +99,21 @@ public class Game{
         deck = new CardStack();
 
         for(int i = 0; i < config.totalWildCard/2; i++)
-            cards.add(new SimpleCards("wild", color[i%4]));
+            cards.add(new Joker("wild", color[i%4]));
 
-        for(int i = 0; i < config.totalWildCard/2; i++)
-            cards.add(new Card("special", color[i%4]));
+        for(int i = 0; i < config.totalWildCard/4; i++)
+            cards.add(new SuperJoker("special", color[i%4]));
+
+        for(int i = 0; i < config.totalWildCard/4; i++)
+            cards.add(new Eraser("eraser", color[i%4]));
 
         for(int i = 0; i < config.cardMaxSize; i++)
             for(int j = 0; j < config.cardMaxSize; j++)
-                cards.add(new Card(String.valueOf(j + 1), color[i%3]));
+                cards.add(new SimpleCards(String.valueOf(j + 1), color[i%3]));
 
         deck.push(cards);
+
+        System.out.print(deck.cards.size());
 
         Collections.shuffle(deck.cards);
 
@@ -120,35 +125,26 @@ public class Game{
         frame.setTitle("Skip Bo");
 
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setPreferredSize(new Dimension(450,500));
+        //frame.setPreferredSize(new Dimension(700,800));
         frame.setVisible(true);
 
         boardRow = new JPanel();
 
         Container pane =  frame.getContentPane();
 
-        pane.setLayout(new GridLayout(3,1));
+        pane.setLayout(new GridLayout(5,2));
         boardRow.setLayout(new FlowLayout());
 
         for(int i = 0; i < config.numberOfStacksInBoard; i++)
-            boardRow.add(new VisualCardStack(boardStacks.get(i), 0, null, "board", this, false).element);
+            boardRow.add(new VisualCardStack(boardStacks.get(i), 0, null, "board", this, false));
 
-        boardRow.add(new VisualCardStack(deck, 0, null, "deck", this, false).element);
+        boardRow.add(new VisualCardStack(deck, 0, null, "deck", this, false));
 
-        JButton exit = new JButton("Exit");
-
-        exit.setPreferredSize(new Dimension(60, 35));
-        exit.setBorder(BorderFactory.createLineBorder(Color.BLACK, 1));
-
-        boardRow.add(exit);
-
-        exit.addActionListener(e -> {
-            frame.dispose();
-        });
-
-        pane.add(players.get(0).field);
+        pane.add(players.get(0).fieldHand);
+        pane.add(players.get(0).fieldCard);
         pane.add(boardRow);
-        pane.add(players.get(1).field);
+        pane.add(players.get(1).fieldCard);
+        pane.add(players.get(1).fieldHand);
 
         frame.pack();
 
@@ -158,26 +154,23 @@ public class Game{
 
         activePlayer = object;
 
-        activePlayer.field.setBackground(Color.green);
-
-        for(int i = 0; i < players.size(); i++)
-            if(players.get(i) != activePlayer)
-                players.get(i).field.setBackground(Color.red);
-
     }
 
     public void selectStack(VisualCardStack stack){
         if(selectedStack == null && stack.owner == activePlayer) {
 
             selectedStack = stack;
-            stack.element.setBorder(BorderFactory.createLineBorder(Color.RED, 2));
+            stack.setColor = Color.gray;
+            stack.repaint();
+            //stack.setBorder(BorderFactory.createLineBorder(Color.RED, 2));
 
         } else if (stack.owner == activePlayer){
 
-            selectedStack.element.setBorder(BorderFactory.createLineBorder(Color.BLACK, 1));
-            selectedStack = null;
+            selectedStack.setColor = Color.black;
+            selectedStack.repaint();
             selectedStack = stack;
-            stack.element.setBorder(BorderFactory.createLineBorder(Color.RED, 2));
+            selectedStack.setColor = Color.gray;
+            selectedStack.repaint();
 
         }
 
@@ -203,12 +196,6 @@ public class Game{
 
         return players.get(n);
 
-    }
-    public void paintComponent(Graphics g) {
-        g.setColor(Color.blue);
-        g.fillRect(100, 50, 200, 100);
-        g.setColor(Color.BLACK);
-        g.drawRect(100, 50, 200, 100);
     }
 
 }

@@ -1,3 +1,6 @@
+import com.sun.corba.se.impl.orbutil.graph.Graph;
+import com.sun.deploy.net.cookie.CookieHandler;
+
 import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.border.CompoundBorder;
@@ -6,22 +9,22 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.Dimension;
+import java.awt.geom.RoundRectangle2D;
 import java.util.ArrayList;
 import java.util.Collections;
 
 /**
  * Created by kille on 1/5/2016.
  */
-public class VisualCardStack{
+public class VisualCardStack extends JLabel{
 
     public Game game;
     public Player owner;
     public CardStack stack;
     public int specificIndex;
     public String type;
-    public JLabel element;
     public boolean useSpecificIndex;
-
+    public Color setColor;
 
     VisualCardStack(CardStack stackRef, int specificIndexRef, Player ownerPlayer, String types, Game gameRef, boolean useSpecificIndexRef){
 
@@ -35,6 +38,7 @@ public class VisualCardStack{
         type = types;
 
         stack.onchange(this);
+        setColor = Color.black;
 
         createElement();
 
@@ -42,17 +46,18 @@ public class VisualCardStack{
 
     public void createElement(){
 
-        element = new JLabel("", JLabel.CENTER);
-        element.setBorder(BorderFactory.createLineBorder(Color.BLACK, 1));
-        element.setPreferredSize(new Dimension(70, 60));
-        Border current = element.getBorder();
-        Border empty = new EmptyBorder(0, 0, 0, 2);
-        element.setBorder(new CompoundBorder(empty, current));
+        setFont(new Font("TimesRoman", Font.CENTER_BASELINE, 16));
+        setHorizontalAlignment(SwingConstants.CENTER);
+        //setBorder(BorderFactory.createLineBorder(Color.BLACK, 1));
+        setPreferredSize(new Dimension(70, 150));
+        //Border current = getBorder();
+        //Border empty = new EmptyBorder(0, 0, 0, 2);
+        //setBorder(new CompoundBorder(empty, current));
 
 
         MouseAdapter handler = _clickHandler();
 
-        element.addMouseListener(handler);
+        addMouseListener(handler);
 
         updateText();
 
@@ -66,9 +71,11 @@ public class VisualCardStack{
             public void mouseClicked(MouseEvent e) {
 
                 if(game.selectedStack != null){
+                    //System.out.println(game.selectedStack + " " + superRef);
                     boolean select = migrate(game.selectedStack, superRef);
                     if(select)
                         return;
+
                 }
 
                 game.selectStack(superRef);
@@ -106,6 +113,12 @@ public class VisualCardStack{
         Card fromCard = from.getShowingCard();
         Card toCard = to.getShowingCard();
 
+        if (fromCard.value == "eraser"){
+            to.push(from.popShowingCard());
+            to.burn();
+            return true;
+        }
+
         if(fromCard == null)
             return false;
 
@@ -125,6 +138,7 @@ public class VisualCardStack{
 
         } else {
             if (to.type == "board")
+
                 if (fromCard.value == "special") {
 
                     int newValue = 0;
@@ -167,10 +181,11 @@ public class VisualCardStack{
         }
 
 
-        game.selectedStack.element.setBorder(BorderFactory.createLineBorder(Color.BLACK, 1));
+        game.selectedStack.setColor = Color.black;
+        game.selectedStack.repaint();
         game.selectedStack = null;
 
-            return true;
+        return true;
 
     }
 
@@ -217,18 +232,50 @@ public class VisualCardStack{
         Card targetCard = getShowingCard();
 
         if(targetCard != null){
-            element.setText(targetCard.value);
-            element.setVisible(true);
+            this.setText(targetCard.value);
+
+            //setText(targetCard.value);
+            System.out.println(getText());
+            this.setVisible(true);
         }
         else {
             if(type == "hand")
-                element.setVisible(false);
+                this.setVisible(false);
             else{
-                element.setBackground(Color.white);
-                element.setText("");
+                this.setText("");
             }
         }
 
+        if(this.type == "board" && length() == 0)
+            this.setText("BP");
+
+        if(this.type == "store" && length() == 0)
+            this.setText("DP");
+
+        if(this.type == "deck")
+            this.setText("?");
+
     }
 
+    public void paintComponent(Graphics g) {
+        super.paintComponent(g);
+        //g.fillArc(-14, 45, 30, 30, 0,90);
+        //g.fillArc(-14, -15, 30, 30, 0,-90);
+
+        Graphics2D g2 = (Graphics2D) g;
+        g2.setPaint(setColor);
+        g2.setStroke(new BasicStroke(2.0f));
+
+        double x = 1;
+        double y = 25;
+        double w = x + 65;
+        double h = y + 75;
+        g2.draw(new RoundRectangle2D.Double(x, y, w, h, 15, 15));
+
+        // Draw Text
+        //g.drawString("This is my custom Panel!",10,20);
+
+        //JLabel c = new JLabel();
+        // c.paint(g);
+    }
 }
