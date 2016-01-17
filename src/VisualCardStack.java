@@ -12,6 +12,7 @@ import java.awt.Dimension;
 import java.awt.geom.RoundRectangle2D;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Random;
 
 /**
  * Created by kille on 1/5/2016.
@@ -24,7 +25,8 @@ public class VisualCardStack extends JLabel{
     public int specificIndex;
     public String type;
     public boolean useSpecificIndex;
-    public Color setColor;
+    public Color setColor[] = {Color.RED, Color.GREEN, Color.BLUE, Color.YELLOW};
+    public Color defaultColor, selectedColor;
 
     VisualCardStack(CardStack stackRef, int specificIndexRef, Player ownerPlayer, String types, Game gameRef, boolean useSpecificIndexRef){
 
@@ -38,7 +40,9 @@ public class VisualCardStack extends JLabel{
         type = types;
 
         stack.onchange(this);
-        setColor = Color.black;
+
+        defaultColor = Color.black;
+        selectedColor = new Color(1,1,1,1);
 
         createElement();
 
@@ -48,12 +52,13 @@ public class VisualCardStack extends JLabel{
 
         setFont(new Font("TimesRoman", Font.CENTER_BASELINE, 16));
         setHorizontalAlignment(SwingConstants.CENTER);
-        //setBorder(BorderFactory.createLineBorder(Color.BLACK, 1));
-        setPreferredSize(new Dimension(70, 150));
-        //Border current = getBorder();
-        //Border empty = new EmptyBorder(0, 0, 0, 2);
-        //setBorder(new CompoundBorder(empty, current));
+        setPreferredSize(new Dimension(110, 150));
 
+        if (this.type == "stack" || this.type == "deck") {
+            Border current = getBorder();
+            Border empty = new EmptyBorder(0, 50, 0, 0);
+            setBorder(new CompoundBorder(empty, current));
+        }
 
         MouseAdapter handler = _clickHandler();
 
@@ -69,17 +74,18 @@ public class VisualCardStack extends JLabel{
         return new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
+                int x = e.getX();
+                int y = e.getY();
+                if (x >= 15 && x <= 90 && y >= 20 && y <= 130) {    //restrict the area of the click
+                    if (game.selectedStack != null) {
+                        boolean select = migrate(game.selectedStack, superRef); //migrate function check if move is allowed
+                        if (select)
+                            return;
 
-                if(game.selectedStack != null){
-                    //System.out.println(game.selectedStack + " " + superRef);
-                    boolean select = migrate(game.selectedStack, superRef);
-                    if(select)
-                        return;
+                    }
 
+                    game.selectStack(superRef);
                 }
-
-                game.selectStack(superRef);
-
             }
         };
 
@@ -89,19 +95,27 @@ public class VisualCardStack extends JLabel{
 
         boolean cardMoved = false;
 
-        String [][] allowedTranfer = new String[][]{
+        String [][] allowedTranfer = new String[][]{    //allowed moves
                 {"hand", "store"},
                 {"hand", "board"},
                 {"store", "board"},
                 {"stack", "board"}
         };
 
+
+        //if move is allowed
+        //Check if it can be done
         for(int i = 0; i < allowedTranfer.length; i++)
             if(allowedTranfer[i][0] == from.type && allowedTranfer[i][1] == to.type)
+                //moveCard function returns
+                //the effect of movements
                 cardMoved = moveCard(from, to);
 
+
+        //if player finish his round
         if(from.type == "hand" && to.type == "store")
             if(cardMoved) {
+                //change active player
                 from.owner.endTurn();
             }
 
@@ -110,13 +124,22 @@ public class VisualCardStack extends JLabel{
 
     public boolean moveCard(VisualCardStack from, VisualCardStack to){
 
-        Card fromCard = from.getShowingCard();
-        Card toCard = to.getShowingCard();
+        Card fromCard = from.getShowingCard();  //take card
+        Card toCard = to.getShowingCard();  //take card
 
-        if (fromCard.value == "eraser"){
-            to.push(from.popShowingCard());
-            to.burn();
-            return true;
+        try {
+            if (fromCard.value == "eraser" && to.type == "board") {
+                to.push(from.popShowingCard());
+                to.burn();
+
+                game.selectedStack.selectedColor = new Color(1,1,1,1);
+                game.selectedStack.repaint();
+                game.selectedStack = null;
+
+                return true;
+            }
+        } catch (NullPointerException e){
+
         }
 
         if(fromCard == null)
@@ -125,6 +148,7 @@ public class VisualCardStack extends JLabel{
         if(to.owner != null && from.owner != null && to.owner != from.owner)
             return false;
 
+        //where we want to go exist card
         if(toCard != null){
 
             if(to.type == "board") {
@@ -136,6 +160,7 @@ public class VisualCardStack extends JLabel{
 
             }
 
+        //where we want to go is empty
         } else {
             if (to.type == "board")
 
@@ -163,6 +188,8 @@ public class VisualCardStack extends JLabel{
 
         }
 
+        //if we pass the above checks
+        //the transfer can be completed
         to.push(from.popShowingCard());
 
         try {
@@ -176,12 +203,13 @@ public class VisualCardStack extends JLabel{
             from.owner.fillHand();
 
         if (from.type == "stack" && from.length() == 0) {
+            JOptionPane.showMessageDialog(null, "Win this one player");
             game.frame.dispose();
             new Game(game.config);
         }
 
 
-        game.selectedStack.setColor = Color.black;
+        game.selectedStack.selectedColor = new Color(1,1,1,1);
         game.selectedStack.repaint();
         game.selectedStack = null;
 
@@ -189,6 +217,9 @@ public class VisualCardStack extends JLabel{
 
     }
 
+    //if board stack is full
+    //clear stack
+    //put them in the deck and shuffle again
     public void burn(){
 
         ArrayList<Card> cards = stack.pop(stack.length(), 0, false);
@@ -233,9 +264,6 @@ public class VisualCardStack extends JLabel{
 
         if(targetCard != null){
             this.setText(targetCard.value);
-
-            //setText(targetCard.value);
-            System.out.println(getText());
             this.setVisible(true);
         }
         else {
@@ -259,23 +287,80 @@ public class VisualCardStack extends JLabel{
 
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
-        //g.fillArc(-14, 45, 30, 30, 0,90);
-        //g.fillArc(-14, -15, 30, 30, 0,-90);
 
+        //draw the border
         Graphics2D g2 = (Graphics2D) g;
-        g2.setPaint(setColor);
+        g2.setPaint(defaultColor);
         g2.setStroke(new BasicStroke(2.0f));
 
-        double x = 1;
-        double y = 25;
-        double w = x + 65;
-        double h = y + 75;
-        g2.draw(new RoundRectangle2D.Double(x, y, w, h, 15, 15));
+        double x = 18;
+        double y = 20;
+        double w = x + 55;
+        double h = y + 90;
 
-        // Draw Text
-        //g.drawString("This is my custom Panel!",10,20);
+        if (this.type == "stack" || this.type == "deck") {
+                g2.setPaint(defaultColor);
+                g2.setStroke(new BasicStroke(2.0f));
 
-        //JLabel c = new JLabel();
-        // c.paint(g);
+                double x1 = 36;
+                double w1 = x + 55;
+                g2.draw(new RoundRectangle2D.Double(x1, y, w1, h, 15, 15));
+
+                Random rand = new Random();
+                int n = rand.nextInt(4);
+
+                g2.setPaint(setColor[n]);
+
+                g.drawOval(36, 20, 15, 15);
+                g.drawOval(36, 115, 15, 15);
+                g.drawOval(94, 20, 15, 15);
+                g.drawOval(94, 115, 15, 15);
+        } else {
+                g2.setPaint(defaultColor);
+                g2.setStroke(new BasicStroke(2.0f));
+
+                g2.draw(new RoundRectangle2D.Double(x, y, w, h, 15, 15));
+
+                Random rand = new Random();
+                int n = rand.nextInt(4);
+
+                g2.setPaint(setColor[n]);
+
+                g.drawOval(18, 20, 15, 15);
+                g.drawOval(18, 115, 15, 15);
+                g.drawOval(76, 20, 15, 15);
+                g.drawOval(76, 115, 15, 15);
+        }
+
+        //draw the circles into the border
+        if (this.type != "stack" && this.type != "deck") {
+
+            int x2 = 19;
+            int y2 = 20;
+            int w2 = getWidth() - 38;
+            int h2 = getHeight() - 40;
+            int arc = 15;
+
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+                    RenderingHints.VALUE_ANTIALIAS_ON);
+
+            g2.setColor(selectedColor);
+            g2.fillRoundRect(x2, y2, w2, h2, arc, arc);
+
+        } else {
+            int x2 = 36;
+            int y2 = 20;
+            int w2 = getWidth() - 38;
+            int h2 = getHeight() - 40;
+            int arc = 15;
+
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+                    RenderingHints.VALUE_ANTIALIAS_ON);
+
+            g2.setColor(selectedColor);
+            g2.fillRoundRect(x2, y2, w2, h2, arc, arc);
+        }
+
     }
+
 }

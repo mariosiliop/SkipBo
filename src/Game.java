@@ -1,8 +1,10 @@
 import javax.swing.*;
 import java.awt.*;
 import java.awt.Color;
+import java.awt.font.TextAttribute;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Map;
 import java.util.Random;
 
 /**
@@ -14,14 +16,14 @@ public class Game {
     public String [] color = {"RED", "BLUE", "GREEN", "YELLOW"};
     public CardStack deck;
     public VisualCardStack selectedStack;
-    public Store boardStacks;
+    public BuildingPile boardStacks;
     public ArrayList<Player> players;
     public ArrayList<Card> cards;
     public JFrame frame;
     public JPanel boardRow;
     public Player activePlayer;
 
-    Game(Config configRef ){
+    Game(Config configRef ){    // create a frame with some buttons like a menu
 
         config = configRef;
 
@@ -51,7 +53,12 @@ public class Game {
         });
 
         about.addActionListener(e -> {
-            JOptionPane.showMessageDialog(frame, "Skip Bo Game", "About", JOptionPane.INFORMATION_MESSAGE);
+            String aboutGame = "Skip Bo Game \n" +
+                    "1.Each player has 30 cards to be flown to win\n" +
+                    "2.Each player has 4 stacks garbage\n" +
+                    "3.Each player at the beginning of the round has 5 cards in his hand\n" +
+                    "Goal : Banish before your opponents 30 cards to win";
+            JOptionPane.showMessageDialog(frame, aboutGame, "About", JOptionPane.INFORMATION_MESSAGE);
         });
 
         frame.pack();
@@ -66,24 +73,27 @@ public class Game {
 
         players = new ArrayList<>();
 
-        boardStacks = new Store(config.numberOfStacksInBoard);
+        boardStacks = new BuildingPile(config.numberOfStacksInBoard); // create borad stacks
 
-        generateCards();
 
+        generateCards();    //create cards
+
+        //create players
         for(int x = 0; x < numberOfPlayers; x++) {
 
             players.add(new Player(this));
-            players.get(x).deal();
+            players.get(x).deal();  //fill player board
 
         }
 
-        initializeBoard();
+        initializeBoard();  //create game field
 
         setActivePlayer(firstPlayer(players));
 
 
     }
 
+    //set active player
     public Player nextPlayer(){
 
         if(players.get(0) == activePlayer)
@@ -119,13 +129,13 @@ public class Game {
 
     }
 
-    public void initializeBoard(){
+    public void initializeBoard(){  //create game field
 
         frame = new JFrame();
         frame.setTitle("Skip Bo");
 
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        //frame.setPreferredSize(new Dimension(700,800));
+        frame.setPreferredSize(new Dimension(1000,1000));
         frame.setVisible(true);
 
         boardRow = new JPanel();
@@ -139,6 +149,9 @@ public class Game {
             boardRow.add(new VisualCardStack(boardStacks.get(i), 0, null, "board", this, false));
 
         boardRow.add(new VisualCardStack(deck, 0, null, "deck", this, false));
+
+        players.get(0).fieldCard.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.BLACK));
+        players.get(1).fieldCard.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, Color.BLACK));
 
         pane.add(players.get(0).fieldHand);
         pane.add(players.get(0).fieldCard);
@@ -156,26 +169,27 @@ public class Game {
 
     }
 
+    //set selected card
     public void selectStack(VisualCardStack stack){
         if(selectedStack == null && stack.owner == activePlayer) {
 
             selectedStack = stack;
-            stack.setColor = Color.gray;
+            stack.selectedColor = new Color(0, 0, 0, 20);
             stack.repaint();
-            //stack.setBorder(BorderFactory.createLineBorder(Color.RED, 2));
 
         } else if (stack.owner == activePlayer){
 
-            selectedStack.setColor = Color.black;
+            selectedStack.selectedColor = new Color(1,1,1,1);
             selectedStack.repaint();
             selectedStack = stack;
-            selectedStack.setColor = Color.gray;
+            selectedStack.selectedColor = new Color(0, 0, 0, 20);
             selectedStack.repaint();
 
         }
 
     }
 
+    //set first player
     public Player firstPlayer(ArrayList<Player> players){
 
         try{

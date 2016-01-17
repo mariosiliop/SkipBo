@@ -7,24 +7,25 @@ import java.awt.*;
 public class Player{
 
     public Game game;
-    public CardStack hand, stack;
-    public Store store;
+    public StockPile stack;
+    public HandCollection hand;
+    public DiscardPile store;
     public JPanel fieldHand, fieldCard;
 
     Player(Game gameRef){
 
         game = gameRef;
-        hand = new CardStack();
-        stack = new CardStack();
-        store = new Store(game.config.numberOfStackInStorage);
+        hand = new HandCollection();
+        stack = new StockPile();
+        store = new DiscardPile(game.config.numberOfStackInStorage);
 
         fieldHand = new JPanel();
         fieldCard = new JPanel();
 
-        generateField();
+        generateField(); //create player field
 
     }
-    public void deal(){
+    public void deal(){ //fill hand and stockpile
         fillHand();
         stack.push(game.deck.pop(game.config.playerStackSize, 0, false));
     }
@@ -33,7 +34,7 @@ public class Player{
         hand.push(game.deck.pop(game.config.maxPlayerHandSize - hand.length(), 0, false));
     }
 
-    public void generateField(){
+    public void generateField(){ // create player field
 
         for(int i = 0; i < game.config.maxPlayerHandSize; i++){
             fieldHand.add(new VisualCardStack(hand, i, this, "hand", game, true));

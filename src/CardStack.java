@@ -19,6 +19,7 @@ public class CardStack {
         _onchange.add(cardStack);
     }
 
+    //pull over card
     public Card getTop(){
         if(cards.size() - 1 != -1)
             return cards.get(cards.size() - 1);
@@ -33,6 +34,7 @@ public class CardStack {
 
     }
 
+    //Take specific number of cards
     public ArrayList<Card> splice(int index, int amount){
 
         ArrayList<Card> returned = new ArrayList<>();
@@ -50,6 +52,7 @@ public class CardStack {
 
 
     }
+
     public void updateSubscribers(){
 
         for(int i =0 ; i < _onchange.size(); i++)
@@ -61,6 +64,7 @@ public class CardStack {
         return cards.size();
     }
 
+    //take card with specific index
     public Card get(int index){
         if(index >= cards.size())
             return null;
@@ -68,9 +72,10 @@ public class CardStack {
             return cards.get(index);
     }
 
+
     public ArrayList<Card> pop(int quantity, int specificIndex, boolean useSpecificIndex){
 
-        ArrayList<Card> spliced; // =  new ArrayList<>();
+        ArrayList<Card> spliced;
 
         int index = cards.size() - quantity;
 
