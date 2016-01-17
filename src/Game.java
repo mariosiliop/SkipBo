@@ -100,7 +100,7 @@ public class Game {
 
     }
 
-    // Determinces which player plays next and
+    // Determines which player plays next and
     // returns a reference
     public Player nextPlayer(){
 
@@ -177,7 +177,7 @@ public class Game {
     }
 
     // Sets the active player by a reference
-    // and update graphics accordingly
+    // and updates graphics accordingly
     public void setActivePlayer(Player object){
 
         activePlayer = object;
@@ -214,7 +214,7 @@ public class Game {
 
     }
 
-    // Determince which player goes first
+    // Determines which player goes first
     public Player firstPlayer(ArrayList<Player> players){
 
         try{

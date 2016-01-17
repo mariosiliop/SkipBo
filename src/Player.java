@@ -41,7 +41,7 @@ public class Player{
     }
 
     // Generate visual objects related to this player
-    // and make them accessible through the fieldCard and
+    // and make them accessible through the fieldHand and
     // fieldCard properties
     public void generateField(){
 

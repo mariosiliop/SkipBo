@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Random;
 
-// A visual object, closely bound and representative
+// A visual object, closely bound to and representative
 // of a CardStack
 public class VisualCardStack extends JLabel {
 
@@ -236,7 +236,7 @@ public class VisualCardStack extends JLabel {
 
         // If we got to this point, the migration
         // is legal, so we 'pop' the card from its
-        // stach and push it to its target
+        // stack and push it to its target
         to.push(from.popShowingCard());
         
         // Apply some 'after' rules
@@ -266,7 +266,7 @@ public class VisualCardStack extends JLabel {
     }
 
     // This method extracts all cards off a VisualCardStack's
-    // CardStack's ArrayList of Cards and pushes then in
+    // CardStack's ArrayList of Cards and pushes them in
     // the game's deck, then shuffles it
     public void burn(){
 
