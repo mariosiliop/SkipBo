@@ -1,6 +1,5 @@
-/**
- * Created by kille on 1/17/2016.
- */
+// A class to distinguish the natures of CardStacks
+// Doesn't do much
 public class StockPile extends CardStack {
     StockPile(){
         super();

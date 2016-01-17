@@ -7,9 +7,6 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Random;
 
-/**
- * Created by kille on 1/4/2016.
- */
 public class Game {
 
     public Config config;
@@ -23,10 +20,13 @@ public class Game {
     public JPanel boardRow;
     public Player activePlayer;
 
-    Game(Config configRef ){    // create a frame with some buttons like a menu
-
+    Game(Config configRef){    
+        
+        // Save a reference to the configuration
+        // object
         config = configRef;
 
+        // Initialize frame and main menu
         frame = new JFrame();
         frame.setTitle("Skip Bo");
 
@@ -48,16 +48,20 @@ public class Game {
         frame.getContentPane().add(about, BorderLayout.CENTER);
 
         play.addActionListener(e -> {
+            
+                // Dispose of this window and
+                // initialize the game's frame        
                 frame.dispose();
                 newGame();
+        
         });
 
         about.addActionListener(e -> {
             String aboutGame = "Skip Bo Game \n" +
-                    "1.Each player has 30 cards to be flown to win\n" +
-                    "2.Each player has 4 stacks garbage\n" +
-                    "3.Each player at the beginning of the round has 5 cards in his hand\n" +
-                    "Goal : Banish before your opponents 30 cards to win";
+                    "1. Each player has 30 cards to be flown to win\n" +
+                    "2. Each player has 4 stacks garbage\n" +
+                    "3. Each player at the beginning of the round has 5 cards in his hand\n" +
+                    "Goal: Banish before your opponents 30 cards to win";
             JOptionPane.showMessageDialog(frame, aboutGame, "About", JOptionPane.INFORMATION_MESSAGE);
         });
 
@@ -65,35 +69,39 @@ public class Game {
 
     }
 
+    // Starts a new game
     public void newGame(){
 
+        // Define variables according to
+        // our configuration object
         int numberOfPlayers = config.numberOfPlayers;
 
         selectedStack = null;
 
         players = new ArrayList<>();
 
-        boardStacks = new BuildingPile(config.numberOfStacksInBoard); // create borad stacks
+        boardStacks = new BuildingPile(config.numberOfStacksInBoard);
 
+        generateCards();
 
-        generateCards();    //create cards
-
-        //create players
+        // Create player objects
         for(int x = 0; x < numberOfPlayers; x++) {
 
             players.add(new Player(this));
-            players.get(x).deal();  //fill player board
+            players.get(x).deal();
 
         }
 
-        initializeBoard();  //create game field
+        // Initialize graphics
+        initializeBoard();
 
+        // Set the active player
         setActivePlayer(firstPlayer(players));
-
 
     }
 
-    //set active player
+    // Determinces which player plays next and
+    // returns a reference
     public Player nextPlayer(){
 
         if(players.get(0) == activePlayer)
@@ -103,6 +111,8 @@ public class Game {
 
     }
 
+    // Generates Card objects that will be used
+    // throughout our game
     public void generateCards(){
 
         cards = new ArrayList<>();
@@ -129,7 +139,8 @@ public class Game {
 
     }
 
-    public void initializeBoard(){  //create game field
+    // Initializes our game's graphics
+    public void initializeBoard(){ 
 
         frame = new JFrame();
         frame.setTitle("Skip Bo");
@@ -152,7 +163,9 @@ public class Game {
 
         players.get(0).fieldCard.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.BLACK));
         players.get(1).fieldCard.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, Color.BLACK));
-
+        
+        // To reduce graphical complexity, we only place
+        // a maximum of 2 players statically
         pane.add(players.get(0).fieldHand);
         pane.add(players.get(0).fieldCard);
         pane.add(boardRow);
@@ -163,14 +176,26 @@ public class Game {
 
     }
 
+    // Sets the active player by a reference
+    // and update graphics accordingly
     public void setActivePlayer(Player object){
 
         activePlayer = object;
+        
+        for(int i = 0; i < players.size(); i++){
+            players.get(i).fieldCard.setBackground(new Color(145, 79, 93));
+            players.get(i).fieldHand.setBackground(new Color(145, 79, 93));
+        }
+
+        activePlayer.fieldHand.setBackground(new Color(70,145, 72));
+        activePlayer.fieldCard.setBackground(new Color(70,145, 72));
 
     }
 
-    //set selected card
+    // Updates a VisualCardStack to look selected
+    // and programmatically declares it selected
     public void selectStack(VisualCardStack stack){
+        
         if(selectedStack == null && stack.owner == activePlayer) {
 
             selectedStack = stack;
@@ -189,7 +214,7 @@ public class Game {
 
     }
 
-    //set first player
+    // Determince which player goes first
     public Player firstPlayer(ArrayList<Player> players){
 
         try{

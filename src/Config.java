@@ -1,6 +1,5 @@
-/**
- * Created by kille on 1/4/2016.
- */
+// A configuration object
+// to dynamically change the game's rules
 public abstract class Config {
 
     public int numberOfPlayers = 2;

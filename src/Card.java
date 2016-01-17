@@ -1,6 +1,5 @@
-/**
- * Created by kille on 1/5/2016.
- */
+// A class that describes every card
+// of our game
 public class Card {
 
     public String id;
@@ -15,7 +14,9 @@ public class Card {
         value = id;
 
     }
-
+    
+    // Dynamically sets the card's value
+    // if needed
     public void setValue(String valueRef){
         value = valueRef;
     }
