@@ -1,8 +1,8 @@
 import java.util.ArrayList;
 
-/**
- * Created by kille on 1/5/2016.
- */
+// A Store is a group of stacks of cards
+// Programmatically, our class stores
+// an ArrayList of CardStack object references
 public class Store {
 
     public ArrayList<CardStack> stacks;
@@ -23,7 +23,8 @@ public class Store {
 
     }
 
-
+    // Returns the CardStack located
+    // in the specified slot
     public CardStack get(int index){
         return stacks.get(index);
     }

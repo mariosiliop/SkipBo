@@ -1,6 +1,5 @@
-/**
- * Created by kille on 1/5/2016.
- */
+// A class to distinguish the natures of Cards
+// Doesn't do much
 public class SimpleCards extends Card {
     SimpleCards(String x, String y){
         super(x,y);

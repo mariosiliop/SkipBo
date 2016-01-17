@@ -14,10 +14,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Random;
 
-/**
- * Created by kille on 1/5/2016.
- */
-public class VisualCardStack extends JLabel{
+// A visual object, closely bound and representative
+// of a CardStack
+public class VisualCardStack extends JLabel {
 
     public Game game;
     public Player owner;
@@ -27,18 +26,41 @@ public class VisualCardStack extends JLabel{
     public boolean useSpecificIndex;
     public Color setColor[] = {Color.RED, Color.GREEN, Color.BLUE, Color.YELLOW};
     public Color defaultColor, selectedColor;
-
-    VisualCardStack(CardStack stackRef, int specificIndexRef, Player ownerPlayer, String types, Game gameRef, boolean useSpecificIndexRef){
-
+    
+    VisualCardStack(CardStack stackRef, int specificIndexRef, Player ownerPlayer, String locationType, Game gameRef, boolean useSpecificIndexRef){
+        
+        // A VisualCardStack can either belong to a
+        // player or not, so we store a Player reference
+        // to the owner property, or null
         owner = ownerPlayer;
+        
+        // A VisualCardStack always belongs to a game,
+        // so we will store a reference of that too
         game = gameRef;
+        
+        // Since the VisualCardStack is a visual object,
+        // we need to specify whether it will be showing
+        // its 'top of the deck' card, or a specific one,
+        // in case it represents the logical stack
+        // of a player's hand
         useSpecificIndex = useSpecificIndexRef;
-
         specificIndex = specificIndexRef;
-
+        
+        // A reference to the actual stack bound
+        // to this visual object
         stack = stackRef;
-        type = types;
+        
+        // A key to distinguish between different
+        // types of VisualCardStacks in order
+        // to apply game-related rules
+        type = locationType;
 
+        // Let the stack that is bound to this
+        // VisualCardStack know that we are interested
+        // in its changes. This will make the
+        // CardStack object call the VisualCardStack's
+        // updateText method every time something
+        // changes in it's ArrayList of Cards
         stack.onchange(this);
 
         defaultColor = Color.black;
@@ -48,6 +70,7 @@ public class VisualCardStack extends JLabel{
 
     }
 
+    // Create the actual visual element
     public void createElement(){
 
         setFont(new Font("TimesRoman", Font.CENTER_BASELINE, 16));
@@ -68,64 +91,83 @@ public class VisualCardStack extends JLabel{
 
     }
 
+    // Handles clicks made to this visual object
     public MouseAdapter _clickHandler(){
-
+        
+        // A reference to this VisualCardStack
         VisualCardStack superRef = this;
+        
         return new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
+                
                 int x = e.getX();
                 int y = e.getY();
-                if (x >= 15 && x <= 90 && y >= 20 && y <= 130) {    //restrict the area of the click
+                
+                // Restrict the area of the click
+                if (x >= 15 && x <= 90 && y >= 20 && y <= 130) {    
+                
+                    // Actually handle the click
                     if (game.selectedStack != null) {
-                        boolean select = migrate(game.selectedStack, superRef); //migrate function check if move is allowed
+                        
+                        boolean select = migrate(game.selectedStack, superRef);
                         if (select)
                             return;
-
+                    
                     }
-
+                    
+                    // If no stack is selected or a migration failed,
+                    // attempt to set this stack as selected
                     game.selectStack(superRef);
+                
                 }
+                
             }
         };
 
     }
 
+    // This method attempts to perform a migration of a card
+    // from one stack to another
     public boolean migrate(VisualCardStack from, VisualCardStack to){
 
+        // Flag to return
         boolean cardMoved = false;
 
-        String [][] allowedTranfer = new String[][]{    //allowed moves
+        // Migration rules
+        String [][] allowedTranfer = new String[][]{  
                 {"hand", "store"},
                 {"hand", "board"},
                 {"store", "board"},
                 {"stack", "board"}
         };
 
-
-        //if move is allowed
-        //Check if it can be done
+        // If the VisualCardStack type combination
+        // is within the rules, attempt to move the card
+        // by calling moveCard and store the result
+        // in cardMoved as boolean
         for(int i = 0; i < allowedTranfer.length; i++)
             if(allowedTranfer[i][0] == from.type && allowedTranfer[i][1] == to.type)
-                //moveCard function returns
-                //the effect of movements
                 cardMoved = moveCard(from, to);
 
-
-        //if player finish his round
+        // If the card succeeded in going from the hand
+        // to the player's store, end the active player's turn
         if(from.type == "hand" && to.type == "store")
-            if(cardMoved) {
-                //change active player
+            if(cardMoved)
                 from.owner.endTurn();
-            }
 
+        // Return whether the migration succeeded or not
         return cardMoved;
+        
     }
 
+    // Attempts to move a card from one stack to another
+    // AFTER core rule checks have passed
     public boolean moveCard(VisualCardStack from, VisualCardStack to){
 
-        Card fromCard = from.getShowingCard();  //take card
-        Card toCard = to.getShowingCard();  //take card
+        // References to the cards in point
+        Card fromCard = from.getShowingCard(); 
+        Card toCard = to.getShowingCard(); 
 
         try {
             if (fromCard.value == "eraser" && to.type == "board") {
@@ -141,16 +183,20 @@ public class VisualCardStack extends JLabel{
         } catch (NullPointerException e){
 
         }
-
+        
+        // If somehow the card we are trying to move
+        // is null, declare failure of migration
+        // @note This should throw an error
         if(fromCard == null)
             return false;
-
+            
+        // Restrict all transfers from one player to another
         if(to.owner != null && from.owner != null && to.owner != from.owner)
             return false;
 
-        //where we want to go exist card
+        // If the stack we are migrating to is not empty
         if(toCard != null){
-
+            
             if(to.type == "board") {
 
                 if (fromCard.value == "special" || fromCard.value == "wild")
@@ -160,7 +206,7 @@ public class VisualCardStack extends JLabel{
 
             }
 
-        //where we want to go is empty
+        // If the stack we are migrating to is empty
         } else {
             if (to.type == "board")
 
@@ -188,10 +234,12 @@ public class VisualCardStack extends JLabel{
 
         }
 
-        //if we pass the above checks
-        //the transfer can be completed
+        // If we got to this point, the migration
+        // is legal, so we 'pop' the card from its
+        // stach and push it to its target
         to.push(from.popShowingCard());
-
+        
+        // Apply some 'after' rules
         try {
             if (Integer.parseInt(fromCard.value) == Integer.parseInt("12") && to.type == "board")
                 to.burn();
@@ -208,18 +256,18 @@ public class VisualCardStack extends JLabel{
             new Game(game.config);
         }
 
-
         game.selectedStack.selectedColor = new Color(1,1,1,1);
         game.selectedStack.repaint();
         game.selectedStack = null;
 
+        // Declare success
         return true;
 
     }
 
-    //if board stack is full
-    //clear stack
-    //put them in the deck and shuffle again
+    // This method extracts all cards off a VisualCardStack's
+    // CardStack's ArrayList of Cards and pushes then in
+    // the game's deck, then shuffles it
     public void burn(){
 
         ArrayList<Card> cards = stack.pop(stack.length(), 0, false);
@@ -234,10 +282,15 @@ public class VisualCardStack extends JLabel{
 
     }
 
+    // Safely returns the amount of cards in the
+    // bound stack
     public int length(){
         return stack.cards.size();
     }
 
+    // Extract the 'showing' card, depending
+    // on the specificIndex (or the last card)
+    // and return a reference to it
     public ArrayList<Card> popShowingCard(){
 
         if(!useSpecificIndex)
@@ -246,11 +299,14 @@ public class VisualCardStack extends JLabel{
             return stack.pop(1, specificIndex, useSpecificIndex);
 
     }
-
+    
+    // Push cards to this VisualCardStack's bound stack
     public void push(ArrayList<Card> stackRef){
         stack.push(stackRef);
     }
 
+    // Returns a reference of the
+    // 'showing' card
     public Card getShowingCard(){
         if(!useSpecificIndex)
             return stack.getTop();
@@ -258,6 +314,11 @@ public class VisualCardStack extends JLabel{
             return stack.get(specificIndex);
     }
 
+    // This method is called by a CardStack's
+    // store of references of VisualCardStacks
+    // upon 'change' pseudo-events and
+    // makes sure the visual objects
+    // are up to date
     public void updateText(){
 
         Card targetCard = getShowingCard();
@@ -284,11 +345,11 @@ public class VisualCardStack extends JLabel{
             this.setText("?");
 
     }
-
+    
+    // Visual details
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
 
-        //draw the border
         Graphics2D g2 = (Graphics2D) g;
         g2.setPaint(defaultColor);
         g2.setStroke(new BasicStroke(2.0f));
@@ -332,7 +393,6 @@ public class VisualCardStack extends JLabel{
                 g.drawOval(76, 115, 15, 15);
         }
 
-        //draw the circles into the border
         if (this.type != "stack" && this.type != "deck") {
 
             int x2 = 19;
